@@ -1,0 +1,180 @@
+-- =====================================================
+-- ONLINE RETAIL SALES ANALYSIS PROJECT
+-- =====================================================
+
+-- =====================================================
+-- 1. CREATE DATABASE
+-- =====================================================
+
+CREATE DATABASE IF NOT EXISTS online_retail;
+
+USE online_retail;
+
+-- =====================================================
+-- 2. CREATE TABLES
+-- =====================================================
+
+-- CUSTOMERS TABLE
+CREATE TABLE IF NOT EXISTS Customers (
+    customer_id INT PRIMARY KEY,
+    name VARCHAR(100),
+    city VARCHAR(50)
+);
+
+-- PRODUCTS TABLE
+CREATE TABLE IF NOT EXISTS Products (
+    product_id INT PRIMARY KEY,
+    name VARCHAR(100),
+    category VARCHAR(50),
+    price DECIMAL(10,2)
+);
+
+-- ORDERS TABLE
+CREATE TABLE IF NOT EXISTS Orders (
+    order_id INT PRIMARY KEY,
+    customer_id INT,
+    order_date DATE,
+    
+    FOREIGN KEY (customer_id)
+    REFERENCES Customers(customer_id)
+);
+
+-- ORDER ITEMS TABLE
+CREATE TABLE IF NOT EXISTS Order_Items (
+    order_item_id INT PRIMARY KEY AUTO_INCREMENT,
+    order_id INT,
+    product_id INT,
+    quantity INT,
+
+    FOREIGN KEY (order_id)
+    REFERENCES Orders(order_id),
+
+    FOREIGN KEY (product_id)
+    REFERENCES Products(product_id)
+);
+
+-- =====================================================
+-- 3. INSERT SAMPLE DATA
+-- =====================================================
+
+-- INSERT CUSTOMERS
+INSERT INTO Customers VALUES
+(1, 'Rahul', 'Bangalore'),
+(2, 'Sneha', 'Mysore'),
+(3, 'Arjun', 'Delhi'),
+(4, 'Priya', 'Mumbai'),
+(5, 'Kiran', 'Chennai');
+
+-- INSERT PRODUCTS
+INSERT INTO Products VALUES
+(101, 'Laptop', 'Electronics', 60000),
+(102, 'Mobile', 'Electronics', 25000),
+(103, 'Shoes', 'Fashion', 3000),
+(104, 'Watch', 'Accessories', 5000),
+(105, 'Headphones', 'Electronics', 2000);
+
+-- INSERT ORDERS
+INSERT INTO Orders VALUES
+(1001, 1, '2026-01-10'),
+(1002, 2, '2026-01-15'),
+(1003, 1, '2026-02-01'),
+(1004, 3, '2026-02-11'),
+(1005, 4, '2026-03-05');
+
+-- INSERT ORDER ITEMS
+INSERT INTO Order_Items(order_id, product_id, quantity) VALUES
+(1001, 101, 1),
+(1001, 105, 2),
+(1002, 102, 1),
+(1003, 103, 3),
+(1004, 104, 2),
+(1005, 101, 1),
+(1005, 102, 1);
+
+-- =====================================================
+-- 4. CHECK DATA
+-- =====================================================
+
+SELECT * FROM Customers;
+
+SELECT * FROM Products;
+
+SELECT * FROM Orders;
+
+SELECT * FROM Order_Items;
+
+-- =====================================================
+-- 5. TOP SELLING PRODUCTS
+-- =====================================================
+
+SELECT 
+    p.name AS product_name,
+    SUM(oi.quantity) AS total_quantity_sold
+FROM Order_Items oi
+JOIN Products p
+ON oi.product_id = p.product_id
+GROUP BY p.name
+ORDER BY total_quantity_sold DESC;
+
+-- =====================================================
+-- 6. MOST VALUABLE CUSTOMERS
+-- =====================================================
+
+SELECT
+    c.name AS customer_name,
+    SUM(p.price * oi.quantity) AS total_spent
+FROM Customers c
+JOIN Orders o
+ON c.customer_id = o.customer_id
+JOIN Order_Items oi
+ON o.order_id = oi.order_id
+JOIN Products p
+ON oi.product_id = p.product_id
+GROUP BY c.name
+ORDER BY total_spent DESC;
+
+-- =====================================================
+-- 7. MONTHLY REVENUE
+-- =====================================================
+
+SELECT
+    MONTH(o.order_date) AS month,
+    SUM(p.price * oi.quantity) AS monthly_revenue
+FROM Orders o
+JOIN Order_Items oi
+ON o.order_id = oi.order_id
+JOIN Products p
+ON oi.product_id = p.product_id
+GROUP BY MONTH(o.order_date)
+ORDER BY month;
+
+-- =====================================================
+-- 8. CATEGORY-WISE SALES ANALYSIS
+-- =====================================================
+
+SELECT
+    p.category,
+    SUM(p.price * oi.quantity) AS total_sales
+FROM Products p
+JOIN Order_Items oi
+ON p.product_id = oi.product_id
+GROUP BY p.category
+ORDER BY total_sales DESC;
+
+-- =====================================================
+-- 9. INACTIVE CUSTOMERS
+-- =====================================================
+
+SELECT
+    c.customer_id,
+    c.name
+FROM Customers c
+LEFT JOIN Orders o
+ON c.customer_id = o.customer_id
+WHERE o.order_id IS NULL;
+
+-- =====================================================
+-- 10. PROJECT COMPLETED
+-- =====================================================
+
+SELECT 'ONLINE RETAIL SALES ANALYSIS PROJECT COMPLETED' AS STATUS;
